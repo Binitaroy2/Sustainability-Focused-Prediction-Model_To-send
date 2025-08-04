@@ -6,3 +6,4 @@ pandas
 numpy
 tensorflow
 python-multipart
+streamlit>=1.24
