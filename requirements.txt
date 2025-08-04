@@ -5,5 +5,6 @@ scikit-learn
 pandas
 numpy
 tensorflow
+matplotlib
 python-multipart
 streamlit>=1.24
