@@ -1,0 +1,15 @@
+artifact_uri: file:///F:/Portfolio%20Projects/Sustainability%20Focused%20Energy%20Consumption%20Prediction%20Project/src/mlruns/519952172590501472/8a5a6084411043afa2e4feb2fb4c8898/artifacts
+end_time: 1754090880293
+entry_point_name: ''
+experiment_id: '519952172590501472'
+lifecycle_stage: active
+run_id: 8a5a6084411043afa2e4feb2fb4c8898
+run_name: RandomForest
+run_uuid: 8a5a6084411043afa2e4feb2fb4c8898
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1754090851721
+status: 3
+tags: []
+user_id: niloy

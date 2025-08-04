@@ -1,0 +1,15 @@
+artifact_uri: file:///F:/Portfolio%20Projects/Sustainability%20Focused%20Energy%20Consumption%20Prediction%20Project/src/mlruns/519952172590501472/bdeeefb1778e499ea7b4d358f2d854f9/artifacts
+end_time: 1754095484264
+entry_point_name: ''
+experiment_id: '519952172590501472'
+lifecycle_stage: active
+run_id: bdeeefb1778e499ea7b4d358f2d854f9
+run_name: CNN
+run_uuid: bdeeefb1778e499ea7b4d358f2d854f9
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1754095483817
+status: 4
+tags: []
+user_id: niloy
