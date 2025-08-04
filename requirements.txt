@@ -4,6 +4,7 @@ azure-storage-blob
 scikit-learn
 pandas
 numpy
+mlflow
 matplotlib
 tensorflow
 python-multipart
