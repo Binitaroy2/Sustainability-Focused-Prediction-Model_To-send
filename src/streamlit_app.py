@@ -56,6 +56,8 @@ def main():
     ]  # 6 features
     try:
         X = df[selected_features]
+        if X.shape[1] != scaler_.n_features_in_:
+            raise ValueError(f"Data has {X.shape[1]} features, but model expects {scaler_.n_features_in_}. Retrain the model.")
         y = df["Energy_Consumption_MWh"]
         # Handle NaNs/infs if any
         X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
@@ -69,7 +71,7 @@ def main():
         ax.set_title("Actual vs Predicted (RF)")
         st.pyplot(fig)
     except ValueError as e:
-        st.warning(f"Prediction error in bulk data: {e}. Models may need retraining to match data features. Click 'Retrain Model' to update.")
+        st.warning(f"Prediction error in bulk data: {e}. Click 'Retrain Model' to update models with current data features.")
 
     # Energy Consumption Predictor Form
     st.header("Energy Consumption Predictor")
@@ -93,6 +95,10 @@ def main():
             # Handle NaNs/infs
             input_data = np.nan_to_num(input_data, nan=0.0, posinf=0.0, neginf=0.0)
 
+            # Check feature count
+            if input_data.shape[1] != scaler_.n_features_in_:
+                raise ValueError(f"Input has {input_data.shape[1]} features, but model expects {scaler_.n_features_in_}. Adjust input or retrain.")
+
             # Scale input
             input_scaled = scaler_.transform(input_data)
 
@@ -108,7 +114,9 @@ def main():
 
             st.success(f"Predicted Energy Consumption: {prediction:.2f} MWh")
         except ValueError as e:
-            st.error(f"Prediction error: {e}. Ensure input values are valid numbers and match model expectations (6 features). Try retraining the model.")
+            st.error(f"Prediction error: {e}. Ensure input values are valid numbers and match model expectations. Try retraining the model.")
+        except Exception as e:
+            st.error(f"Model error: {e}. The model architecture may not support the input shape. Try a different model or retrain.")
 
 if __name__ == "__main__":
     main()
