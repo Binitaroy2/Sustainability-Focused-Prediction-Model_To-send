@@ -57,8 +57,8 @@ def main():
     X = df[selected_features]
     y = df["Energy_Consumption_MWh"]
     # Handle NaNs/infs if any
-    X = X.replace([np.inf, -np.inf], np.nan).fillna(X.mean(numeric_only=True))
-    Xs = scaler_.transform(X)
+    X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
+    Xs = scaler_.transform(X.values)  # Use .values to avoid feature name check
     preds = rf_.predict(Xs)
     st.markdown("### RF: Actual vs Predicted")
     fig, ax = plt.subplots()
@@ -85,6 +85,8 @@ def main():
 
         # Create input array matching training features
         input_data = np.array([[energy_production, type_num, installed_capacity, energy_storage_capacity, storage_efficiency, grid_integration_level]])
+
+        # Scale input
         input_scaled = scaler_.transform(input_data)
 
         # Predict based on selected model
