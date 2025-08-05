@@ -33,17 +33,30 @@ selected_features = [
     'Grid_Integration_Level'
 ]
 
+# Ensure mapping for categorical column
+mapping = {
+    '1': 'Solar',
+    '2': 'Wind',
+    '3': 'Hydroelectric',
+    '4': 'Geothermal',
+    '5': 'Biomass',
+    '6': 'Tidal',
+    '7': 'Wave'
+}
+# If using numerical encoding for model (which you are), keep the column as is.
+# If you want one-hot encoding for DL, add preprocessing as needed.
+
 X = df[selected_features]
 y = df[target]
 
-# Scale all features (since Type_of_Renewable_Energy is numeric 1-7)
+# Standardize all features except the categorical one
+numeric_features = [f for f in selected_features if f != 'Type_of_Renewable_Energy']
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_scaled = X.copy()
+X_scaled[numeric_features] = scaler.fit_transform(X[numeric_features])
 
-# Use temp dir for model saving to avoid permission issues
-models_dir = os.path.join(tempfile.gettempdir(), "models")
-os.makedirs(models_dir, exist_ok=True)
-joblib.dump(scaler, os.path.join(models_dir, "scaler.pkl"))
+os.makedirs("../models", exist_ok=True)
+joblib.dump(scaler, "../models/scaler.pkl")
 
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
@@ -55,12 +68,12 @@ with mlflow.start_run(run_name="RandomForest"):
     mse = mean_squared_error(y_test, preds)
     mlflow.sklearn.log_model(rf, "rf_model")
     mlflow.log_metric("mse", mse)
-    joblib.dump(rf, os.path.join(models_dir, "best_rf_model.pkl"))
+    joblib.dump(rf, "../models/best_rf_model.pkl")
     print("RF MSE:", mse)
 
 # Prepare for DL models
-X_train_reshaped = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
-X_test_reshaped = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+X_train_reshaped = X_train.values.reshape(X_train.shape[0], X_train.shape[1], 1)
+X_test_reshaped = X_test.values.reshape(X_test.shape[0], X_test.shape[1], 1)
 
 # 2. CNN Model
 with mlflow.start_run(run_name="CNN"):
@@ -78,7 +91,7 @@ with mlflow.start_run(run_name="CNN"):
     cnn_mse = cnn.evaluate(X_test_reshaped, y_test, verbose=0)[0]
     mlflow.tensorflow.log_model(cnn, "cnn_model")
     mlflow.log_metric("mse", cnn_mse)
-    cnn.save(os.path.join(models_dir, "cnn_model.keras"))
+    cnn.save("../models/cnn_model.keras")
     print("CNN MSE:", cnn_mse)
 
 # 3. RNN Model
@@ -95,5 +108,5 @@ with mlflow.start_run(run_name="RNN"):
     rnn_mse = rnn.evaluate(X_test_reshaped, y_test, verbose=0)[0]
     mlflow.tensorflow.log_model(rnn, "rnn_model")
     mlflow.log_metric("mse", rnn_mse)
-    rnn.save(os.path.join(models_dir, "rnn_model.keras"))
+    rnn.save("../models/rnn_model.keras")
     print("RNN MSE:", rnn_mse)
