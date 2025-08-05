@@ -90,7 +90,7 @@ with mlflow.start_run(run_name="CNN"):
     mlflow.log_metric("mse", cnn_mse)
     cnn.save("../models/cnn_model.keras")
     print("CNN MSE:", cnn_mse)
-    
+
 # 3. RNN Model
 with mlflow.start_run(run_name="RNN"):
     rnn = Sequential([
