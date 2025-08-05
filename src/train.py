@@ -75,9 +75,9 @@ X_test_reshaped = X_test.values.reshape(X_test.shape[0], X_test.shape[1], 1)
 # 2. CNN Model
 with mlflow.start_run(run_name="CNN"):
     cnn = Sequential([
-        Conv1D(64, kernel_size=3, activation='relu', padding='same', input_shape=(X_train.shape[1], 1)),
+        Conv1D(64, kernel_size=2, activation='relu', padding='same', input_shape=(X_train.shape[1], 1)),
         MaxPooling1D(pool_size=2),
-        Conv1D(32, kernel_size=3, activation='relu', padding='same'),
+        Conv1D(32, kernel_size=2, activation='relu', padding='same'),
         Flatten(),
         Dense(128, activation='relu'),
         Dropout(0.5),
