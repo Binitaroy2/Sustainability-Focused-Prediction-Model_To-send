@@ -1,19 +1,19 @@
 # src/streamlit_app.py
 import os
+import subprocess
+import importlib
 import sys
-# No need for path manipulations or chdir
 
-# Import your modules without the 'src.' prefix since we're in src/
-from train import train_and_log  # train.py (same dir)
+# Import models module
 from api.main import scaler, rf_model, cnn, rnn  # api/main.py (subfolder)
 
-# Now the Streamlit app
+# Streamlit app
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Assuming CWD is project root; adjust if needed
-PROJECT_ROOT = os.getcwd()
+# Project root for paths
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "updated_energy_dataset.csv")
 
 @st.cache_data
@@ -22,7 +22,9 @@ def load_data():
 
 @st.cache_resource
 def load_models():
-    # these were loaded when api.main was imported
+    # Reload the module to pick up new models after retrain
+    importlib.reload(sys.modules['api.main'])
+    from api.main import scaler, rf_model, cnn, rnn
     return scaler, rf_model, cnn, rnn
 
 def main():
@@ -32,10 +34,16 @@ def main():
     st.sidebar.header("Controls")
     if st.sidebar.button("Retrain Model"):
         with st.spinner("Running train.py…"):
-            train_and_log()
-        st.success("✅ Model retrained! Click ‘Reload Models’ to pick up changes.")
+            # Run train.py via subprocess to avoid import execution
+            train_path = os.path.join(PROJECT_ROOT, 'src', 'train.py')
+            src_dir = os.path.join(PROJECT_ROOT, 'src')
+            result = subprocess.run(['python', train_path], capture_output=True, text=True, cwd=src_dir)
+            if result.returncode == 0:
+                st.success("✅ Model retrained! Click ‘Reload Models’ to pick up changes.")
+            else:
+                st.error(f"Training failed: {result.stderr}")
     if st.sidebar.button("Reload Models"):
-        load_models.clear()
+        load_models.clear()  # Clear cache to force reload
         st.success("🔄 Models reloaded.")
     # Data preview
     df = load_data()
