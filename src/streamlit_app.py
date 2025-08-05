@@ -1,19 +1,19 @@
 # src/streamlit_app.py
 import os
 import sys
-import subprocess
-import importlib
+# No need for path manipulations or chdir
 
-# Import models without train (to avoid triggering execution)
-from src.api.main import scaler, rf_model, cnn, rnn  # src/api/main.py
+# Import your modules without the 'src.' prefix since we're in src/
+from train import train_and_log  # train.py (same dir)
+from api.main import scaler, rf_model, cnn, rnn  # api/main.py (subfolder)
 
-# Streamlit app
+# Now the Streamlit app
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Project root for paths (works in local and Cloud)
-PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+# Assuming CWD is project root; adjust if needed
+PROJECT_ROOT = os.getcwd()
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "updated_energy_dataset.csv")
 
 @st.cache_data
@@ -22,9 +22,7 @@ def load_data():
 
 @st.cache_resource
 def load_models():
-    # Reload the module to pick up new models after retrain
-    importlib.reload(sys.modules['src.api.main'])
-    from src.api.main import scaler, rf_model, cnn, rnn
+    # these were loaded when api.main was imported
     return scaler, rf_model, cnn, rnn
 
 def main():
@@ -34,15 +32,10 @@ def main():
     st.sidebar.header("Controls")
     if st.sidebar.button("Retrain Model"):
         with st.spinner("Running train.py…"):
-            # Run train.py as subprocess to avoid import execution
-            train_path = os.path.join(PROJECT_ROOT, "src", "train.py")
-            result = subprocess.run(["python", train_path], capture_output=True, text=True)
-            if result.returncode == 0:
-                st.success("✅ Model retrained! Click ‘Reload Models’ to pick up changes.")
-            else:
-                st.error(f"Training failed: {result.stderr}")
+            train_and_log()
+        st.success("✅ Model retrained! Click ‘Reload Models’ to pick up changes.")
     if st.sidebar.button("Reload Models"):
-        load_models.clear()  # Clear cache to force reload
+        load_models.clear()
         st.success("🔄 Models reloaded.")
     # Data preview
     df = load_data()
