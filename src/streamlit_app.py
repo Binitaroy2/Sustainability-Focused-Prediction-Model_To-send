@@ -81,6 +81,8 @@ def main():
 
         # Create input array matching training features
         input_data = np.array([[energy_production, type_num, installed_capacity, energy_storage_capacity, storage_efficiency, grid_integration_level]])
+
+        # Scale input
         input_scaled = scaler_.transform(input_data)
 
         # Predict based on selected model
