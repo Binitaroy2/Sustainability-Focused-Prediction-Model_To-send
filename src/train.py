@@ -12,7 +12,7 @@ import os
 import tempfile
 import tensorflow as tf
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Conv1D, Flatten, MaxPooling1D, Dropout, LSTM
+from tensorflow.keras.layers import Dense, Conv1D, Flatten, Dropout, LSTM
 
 # Redirect MLflow to temp dir to avoid permission issues
 mlflow_tmp = os.path.join(tempfile.gettempdir(), "mlruns")
@@ -33,14 +33,24 @@ selected_features = [
     'Grid_Integration_Level'
 ]
 
+# Numeric features (5) for scaling, exclude categorical
+numeric_features = [
+    'Energy_Production_MWh',
+    'Installed_Capacity_MW',
+    'Energy_Storage_Capacity_MWh',
+    'Storage_Efficiency_Percentage',
+    'Grid_Integration_Level'
+]
+
 X = df[selected_features]
 y = df[target]
 
-# Standardize all features except the categorical one
-numeric_features = [f for f in selected_features if f != 'Type_of_Renewable_Energy']
+# Scale only numeric features
 scaler = StandardScaler()
+X_numeric = X[numeric_features]
+X_scaled_numeric = scaler.fit_transform(X_numeric)
 X_scaled = X.copy()
-X_scaled[numeric_features] = scaler.fit_transform(X[numeric_features])
+X_scaled[numeric_features] = X_scaled_numeric
 
 os.makedirs("../models", exist_ok=True)
 joblib.dump(scaler, "../models/scaler.pkl")
@@ -66,7 +76,6 @@ X_test_reshaped = X_test.values.reshape(X_test.shape[0], X_test.shape[1], 1)
 with mlflow.start_run(run_name="CNN"):
     cnn = Sequential([
         Conv1D(64, kernel_size=2, activation='relu', padding='same', input_shape=(X_train.shape[1], 1)),
-        MaxPooling1D(pool_size=2),
         Conv1D(32, kernel_size=2, activation='relu', padding='same'),
         Flatten(),
         Dense(128, activation='relu'),

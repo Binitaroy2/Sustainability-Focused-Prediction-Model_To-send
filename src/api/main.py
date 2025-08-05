@@ -46,22 +46,16 @@ async def predict(features: dict, model_type: str = Query("rf")):
     X_input = np.array([[features.get(feat, 0) for feat in FEATURES]])
     import pandas as pd
     X_df = pd.DataFrame(X_input, columns=FEATURES)
-    numeric_X = X_df[numeric_features]
-    scaled_numeric = scaler.transform(numeric_X)
-    X_scaled = X_df.copy()
-    X_scaled[numeric_features] = scaled_numeric
-    X_scaled_values = X_scaled.values
+    X_df[numeric_features] = scaler.transform(X_df[numeric_features])
+    X_scaled = X_df.values
 
     if model_type == "cnn":
-        X_dl = X_scaled_values.reshape(X_scaled_values.shape[0], X_scaled_values.shape[1], 1)
-        # Pad to avoid negative dimension (make timesteps at least 7)
-        if X_dl.shape[1] < 7:
-            pad_width = ((0,0), (0,7 - X_dl.shape[1]), (0,0))
-            X_dl = np.pad(X_dl, pad_width, mode='constant')
+        X_dl = X_scaled.reshape(X_scaled.shape[0], X_scaled.shape[1], 1)
+        # No padding needed with updated model
         y_pred = cnn_model.predict(X_dl)
     elif model_type == "rnn":
-        X_dl = X_scaled_values.reshape(X_scaled_values.shape[0], X_scaled_values.shape[1], 1)
+        X_dl = X_scaled.reshape(X_scaled.shape[0], X_scaled.shape[1], 1)
         y_pred = rnn_model.predict(X_dl)
     else:
-        y_pred = rf_model.predict(X_scaled_values)
+        y_pred = rf_model.predict(X_scaled)
     return {"prediction": float(y_pred[0][0] if len(y_pred[0]) > 0 else y_pred[0])}
