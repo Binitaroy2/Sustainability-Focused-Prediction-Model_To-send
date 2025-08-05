@@ -33,27 +33,12 @@ selected_features = [
     'Grid_Integration_Level'
 ]
 
-# Ensure mapping for categorical column
-mapping = {
-    '1': 'Solar',
-    '2': 'Wind',
-    '3': 'Hydroelectric',
-    '4': 'Geothermal',
-    '5': 'Biomass',
-    '6': 'Tidal',
-    '7': 'Wave'
-}
-# If using numerical encoding for model (which you are), keep the column as is.
-# If you want one-hot encoding for DL, add preprocessing as needed.
-
 X = df[selected_features]
 y = df[target]
 
-# Standardize all features except the categorical one
-numeric_features = [f for f in selected_features if f != 'Type_of_Renewable_Energy']
+# Scale all features (since Type_of_Renewable_Energy is numeric 1-7)
 scaler = StandardScaler()
-X_scaled = X.copy()
-X_scaled[numeric_features] = scaler.fit_transform(X[numeric_features])
+X_scaled = scaler.fit_transform(X)
 
 # Use temp dir for model saving to avoid permission issues
 models_dir = os.path.join(tempfile.gettempdir(), "models")
@@ -74,8 +59,8 @@ with mlflow.start_run(run_name="RandomForest"):
     print("RF MSE:", mse)
 
 # Prepare for DL models
-X_train_reshaped = X_train.values.reshape(X_train.shape[0], X_train.shape[1], 1)
-X_test_reshaped = X_test.values.reshape(X_test.shape[0], X_test.shape[1], 1)
+X_train_reshaped = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+X_test_reshaped = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
 
 # 2. CNN Model
 with mlflow.start_run(run_name="CNN"):
