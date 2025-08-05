@@ -3,27 +3,26 @@
 import os
 import sys
 
-# ─── 1) Determine absolute paths ───
-THIS_FILE    = os.path.abspath(__file__)
-SRC_DIR      = os.path.dirname(THIS_FILE)                     # .../<repo>/src
-PROJECT_ROOT = os.path.dirname(SRC_DIR)                       # .../<repo>
+# 1) Determine absolute paths
+THIS_FILE    = os.path.abspath(__file__)                # .../<repo>/src/streamlit_app.py
+SRC_DIR      = os.path.dirname(THIS_FILE)               # .../<repo>/src
+PROJECT_ROOT = os.path.dirname(SRC_DIR)                 # .../<repo>
 
-# ─── 2) Temporarily switch cwd into src/ ───
+# 2) Temporarily switch cwd into src/
 os.chdir(SRC_DIR)
 
-# ─── 3) Make sure Python can import from src/ ───
+# 3) Make sure Python can import from src/
 if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
-# ─── 4) Import your untouched modules ───
-from train import train_and_log             # src/train.py
-from api.main import scaler, rf_model, cnn, rnn  # src/api/main.py
+# 4) Import your untouched modules
+from train import train_and_log                         # src/train.py
+from api.main import scaler, rf_model, cnn, rnn         # src/api/main.py
 
-# ─── 5) Restore cwd back to project root ───
+# 5) Restore cwd back to project root
 os.chdir(PROJECT_ROOT)
 
-
-# ─── 6) Now the Streamlit app ───
+# 6) Now the Streamlit app
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
