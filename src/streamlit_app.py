@@ -33,9 +33,11 @@ def main():
     st.sidebar.header("Controls")
     if st.sidebar.button("Retrain Model"):
         with st.spinner("Running train.py…"):
-            # Run train.py via subprocess to avoid import execution
+            # Run train.py via subprocess using venv Python to avoid import execution
+            venv_python = '/home/adminuser/venv/bin/python'  # Streamlit Cloud venv path
+            train_path = os.path.join(PROJECT_ROOT, 'src', 'train.py')
             src_dir = os.path.join(PROJECT_ROOT, 'src')
-            result = subprocess.run(['python', 'train.py'], capture_output=True, text=True, cwd=src_dir)
+            result = subprocess.run([venv_python, train_path], capture_output=True, text=True, cwd=src_dir)
             if result.returncode == 0:
                 st.success("✅ Model retrained! Click ‘Reload Models’ to pick up changes.")
             else:
