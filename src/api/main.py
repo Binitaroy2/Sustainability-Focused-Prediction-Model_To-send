@@ -27,10 +27,12 @@ numeric_features = [
     'Grid_Integration_Level'
 ]
 
-scaler = joblib.load(os.path.join("..", "..", "models", "scaler.pkl"))
-rf_model = joblib.load(os.path.join("..", "..", "models", "best_rf_model.pkl"))
-cnn_model = load_model(os.path.join("..", "..", "models", "cnn_model.keras"))
-rnn_model = load_model(os.path.join("..", "..", "models", "rnn_model.keras"))
+# Use absolute path for models
+models_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "models")
+scaler = joblib.load(os.path.join(models_path, "scaler.pkl"))
+rf_model = joblib.load(os.path.join(models_path, "best_rf_model.pkl"))
+cnn_model = load_model(os.path.join(models_path, "cnn_model.keras"))
+rnn_model = load_model(os.path.join(models_path, "rnn_model.keras"))
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
