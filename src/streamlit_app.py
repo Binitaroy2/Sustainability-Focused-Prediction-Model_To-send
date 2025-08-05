@@ -50,8 +50,14 @@ def main():
     st.dataframe(df.head())
     # Predictions on data
     scaler_, rf_, cnn_, rnn_ = load_models()
-    X = df.drop(columns=["Energy_Consumption_MWh"])
+    selected_features = [
+        'Energy_Production_MWh', 'Type_of_Renewable_Energy', 'Installed_Capacity_MW',
+        'Energy_Storage_Capacity_MWh', 'Storage_Efficiency_Percentage', 'Grid_Integration_Level'
+    ]
+    X = df[selected_features]
     y = df["Energy_Consumption_MWh"]
+    # Handle NaNs/infs if any
+    X = X.replace([np.inf, -np.inf], np.nan).fillna(X.mean(numeric_only=True))
     Xs = scaler_.transform(X)
     preds = rf_.predict(Xs)
     st.markdown("### RF: Actual vs Predicted")
