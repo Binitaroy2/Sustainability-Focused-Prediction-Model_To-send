@@ -1,16 +1,21 @@
 # src/streamlit_app.py
 import os
 import subprocess
+import importlib
+import sys
+
+# Import models module
+from api.main import scaler, rf_model, cnn, rnn  # api/main.py (subfolder)
+
+# Streamlit app
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import joblib
-from tensorflow.keras.models import load_model
+import numpy as np
 
 # Project root for paths
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "updated_energy_dataset.csv")
-MODELS_PATH = os.path.join(PROJECT_ROOT, "models")
 
 @st.cache_data
 def load_data():
@@ -18,12 +23,10 @@ def load_data():
 
 @st.cache_resource
 def load_models():
-    # Load models directly with absolute paths
-    scaler_ = joblib.load(os.path.join(MODELS_PATH, "scaler.pkl"))
-    rf_ = joblib.load(os.path.join(MODELS_PATH, "best_rf_model.pkl"))
-    cnn_ = load_model(os.path.join(MODELS_PATH, "cnn_model.keras"))
-    rnn_ = load_model(os.path.join(MODELS_PATH, "rnn_model.keras"))
-    return scaler_, rf_, cnn_, rnn_
+    # Reload the module to pick up new models after retrain
+    importlib.reload(sys.modules['api.main'])
+    from api.main import scaler, rf_model, cnn, rnn
+    return scaler, rf_model, cnn, rnn
 
 def main():
     st.set_page_config(layout="wide", page_title="🔋 Energy Predictor")
@@ -47,10 +50,10 @@ def main():
     df = load_data()
     st.markdown("### Raw data preview")
     st.dataframe(df.head())
-    # Predictions
+    # Predictions on data
     scaler_, rf_, cnn_, rnn_ = load_models()
-    X = df.drop(columns=["Target"])
-    y = df["Target"]
+    X = df.drop(columns=["Energy_Consumption_MWh"])
+    y = df["Energy_Consumption_MWh"]
     Xs = scaler_.transform(X)
     preds = rf_.predict(Xs)
     st.markdown("### RF: Actual vs Predicted")
@@ -60,6 +63,37 @@ def main():
     ax.set_ylabel("Predicted")
     ax.set_title("Actual vs Predicted (RF)")
     st.pyplot(fig)
+
+    # Energy Consumption Predictor Form
+    st.header("Energy Consumption Predictor")
+    energy_production = st.number_input("Energy Production (MWh)")
+    type_renewable = st.selectbox("Type of Renewable Energy", options=["Solar", "Wind", "Hydroelectric", "Biomass", "Geothermal", "Tidal", "Wave"])
+    installed_capacity = st.number_input("Installed Capacity (MW)")
+    energy_storage_capacity = st.number_input("Energy Storage Capacity (MWh)")
+    storage_efficiency = st.number_input("Storage Efficiency (%)")
+    grid_integration_level = st.number_input("Grid Integration Level")
+    model_type = st.selectbox("Model Type:", options=["Random Forest", "CNN", "RNN"])
+
+    if st.button("Predict"):
+        # Map renewable type to numeric (based on typical encoding: 1=Solar, 2=Wind, etc.)
+        type_map = {"Solar": 1, "Wind": 2, "Hydroelectric": 3, "Biomass": 4, "Geothermal": 5, "Tidal": 6, "Wave": 7}
+        type_num = type_map.get(type_renewable, 1)  # Default to Solar if not found
+
+        # Create input array matching training features
+        input_data = np.array([[energy_production, type_num, installed_capacity, energy_storage_capacity, storage_efficiency, grid_integration_level]])
+        input_scaled = scaler_.transform(input_data)
+
+        # Predict based on selected model
+        if model_type == "Random Forest":
+            prediction = rf_.predict(input_scaled)[0]
+        elif model_type == "CNN":
+            input_reshaped = input_scaled.reshape((1, input_scaled.shape[1], 1))
+            prediction = cnn_.predict(input_reshaped)[0][0]
+        elif model_type == "RNN":
+            input_reshaped = input_scaled.reshape((1, input_scaled.shape[1], 1))
+            prediction = rnn_.predict(input_reshaped)[0][0]
+
+        st.success(f"Predicted Energy Consumption: {prediction:.2f} MWh")
 
 if __name__ == "__main__":
     main()
