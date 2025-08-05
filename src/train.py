@@ -33,19 +33,6 @@ selected_features = [
     'Grid_Integration_Level'
 ]
 
-# Ensure mapping for categorical column
-mapping = {
-    '1': 'Solar',
-    '2': 'Wind',
-    '3': 'Hydroelectric',
-    '4': 'Geothermal',
-    '5': 'Biomass',
-    '6': 'Tidal',
-    '7': 'Wave'
-}
-# If using numerical encoding for model (which you are), keep the column as is.
-# If you want one-hot encoding for DL, add preprocessing as needed.
-
 X = df[selected_features]
 y = df[target]
 

@@ -57,11 +57,7 @@ def main():
         y = df["Energy_Consumption_MWh"]
         # Handle NaNs/infs if any
         X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
-        numeric_X = X[numeric_features]
-        scaled_numeric = scaler_.transform(numeric_X)
-        X_scaled = X.copy()
-        X_scaled[numeric_features] = scaled_numeric
-        Xs = X_scaled.values  # Full 6 features for model
+        Xs = scaler_.transform(X.values)  # Use .values to avoid feature name check
         preds = rf_.predict(Xs)
         st.markdown("### RF: Actual vs Predicted")
         fig, ax = plt.subplots()
