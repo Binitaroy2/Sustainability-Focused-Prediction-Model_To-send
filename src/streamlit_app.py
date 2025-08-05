@@ -52,12 +52,10 @@ def main():
     scaler_, rf_, cnn_, rnn_ = load_models()
     selected_features = [
         'Energy_Production_MWh', 'Type_of_Renewable_Energy', 'Installed_Capacity_MW',
-        'Energy_Storage_Capacity_MWh', 'Storage_Efficiency_Percentage', 'Grid_Integration_Level'
-    ]  # 6 features
+        'Energy_Storage_Capacity_MWh', 'Storage_Efficiency_Percentage'
+    ]  # 5 features to match scaler
     try:
         X = df[selected_features]
-        if X.shape[1] != scaler_.n_features_in_:
-            raise ValueError(f"Data has {X.shape[1]} features, but model expects {scaler_.n_features_in_}. Retrain the model.")
         y = df["Energy_Consumption_MWh"]
         # Handle NaNs/infs if any
         X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
@@ -80,7 +78,7 @@ def main():
     installed_capacity = st.number_input("Installed Capacity (MW)")
     energy_storage_capacity = st.number_input("Energy Storage Capacity (MWh)")
     storage_efficiency = st.number_input("Storage Efficiency (%)")
-    grid_integration_level = st.number_input("Grid Integration Level")
+    grid_integration_level = st.number_input("Grid Integration Level")  # Included but not used
     model_type = st.selectbox("Model Type:", options=["Random Forest", "CNN", "RNN"])
 
     if st.button("Predict"):
@@ -89,15 +87,11 @@ def main():
             type_map = {"Solar": 1, "Wind": 2, "Hydroelectric": 3, "Biomass": 4, "Geothermal": 5, "Tidal": 6, "Wave": 7}
             type_num = type_map.get(type_renewable, 1)  # Default to Solar if not found
 
-            # Create input array matching training features (6 features)
-            input_data = np.array([[energy_production, type_num, installed_capacity, energy_storage_capacity, storage_efficiency, grid_integration_level]])
+            # Create input array matching training features (5 features)
+            input_data = np.array([[energy_production, type_num, installed_capacity, energy_storage_capacity, storage_efficiency]])
 
             # Handle NaNs/infs
             input_data = np.nan_to_num(input_data, nan=0.0, posinf=0.0, neginf=0.0)
-
-            # Check feature count
-            if input_data.shape[1] != scaler_.n_features_in_:
-                raise ValueError(f"Input has {input_data.shape[1]} features, but model expects {scaler_.n_features_in_}. Adjust input or retrain.")
 
             # Scale input
             input_scaled = scaler_.transform(input_data)
@@ -114,7 +108,7 @@ def main():
 
             st.success(f"Predicted Energy Consumption: {prediction:.2f} MWh")
         except ValueError as e:
-            st.error(f"Prediction error: {e}. Ensure input values are valid numbers and match model expectations. Try retraining the model.")
+            st.error(f"Prediction error: {e}. Ensure input values are valid numbers and match model expectations (5 features). Try retraining the model.")
         except Exception as e:
             st.error(f"Model error: {e}. The model architecture may not support the input shape. Try a different model or retrain.")
 
