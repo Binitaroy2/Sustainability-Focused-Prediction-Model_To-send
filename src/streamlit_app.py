@@ -52,21 +52,24 @@ def main():
     scaler_, rf_, cnn_, rnn_ = load_models()
     selected_features = [
         'Energy_Production_MWh', 'Type_of_Renewable_Energy', 'Installed_Capacity_MW',
-        'Energy_Storage_Capacity_MWh', 'Storage_Efficiency_Percentage', 'Grid_Integration_Level'
-    ]  # 6 features
-    X = df[selected_features]
-    y = df["Energy_Consumption_MWh"]
-    # Handle NaNs/infs if any
-    X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
-    Xs = scaler_.transform(X.values)  # Use .values to avoid feature name check
-    preds = rf_.predict(Xs)
-    st.markdown("### RF: Actual vs Predicted")
-    fig, ax = plt.subplots()
-    ax.scatter(y, preds, alpha=0.5)
-    ax.set_xlabel("Actual")
-    ax.set_ylabel("Predicted")
-    ax.set_title("Actual vs Predicted (RF)")
-    st.pyplot(fig)
+        'Energy_Storage_Capacity_MWh', 'Storage_Efficiency_Percentage'
+    ]  # 5 features to match scaler
+    try:
+        X = df[selected_features]
+        y = df["Energy_Consumption_MWh"]
+        # Handle NaNs/infs if any
+        X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
+        Xs = scaler_.transform(X.values)  # Use .values to avoid feature name check
+        preds = rf_.predict(Xs)
+        st.markdown("### RF: Actual vs Predicted")
+        fig, ax = plt.subplots()
+        ax.scatter(y, preds, alpha=0.5)
+        ax.set_xlabel("Actual")
+        ax.set_ylabel("Predicted")
+        ax.set_title("Actual vs Predicted (RF)")
+        st.pyplot(fig)
+    except ValueError as e:
+        st.error(f"Prediction error: {e}. Check if features match the model's expected input (5 features).")
 
     # Energy Consumption Predictor Form
     st.header("Energy Consumption Predictor")
@@ -75,31 +78,35 @@ def main():
     installed_capacity = st.number_input("Installed Capacity (MW)")
     energy_storage_capacity = st.number_input("Energy Storage Capacity (MWh)")
     storage_efficiency = st.number_input("Storage Efficiency (%)")
-    grid_integration_level = st.number_input("Grid Integration Level")
+    grid_integration_level = st.number_input("Grid Integration Level")  # Included but not used
     model_type = st.selectbox("Model Type:", options=["Random Forest", "CNN", "RNN"])
 
     if st.button("Predict"):
-        # Map renewable type to numeric (based on typical encoding: 1=Solar, 2=Wind, etc.)
-        type_map = {"Solar": 1, "Wind": 2, "Hydroelectric": 3, "Biomass": 4, "Geothermal": 5, "Tidal": 6, "Wave": 7}
-        type_num = type_map.get(type_renewable, 1)  # Default to Solar if not found
+        try:
+            # Map renewable type to numeric (based on typical encoding: 1=Solar, 2=Wind, etc.)
+            type_map = {"Solar": 1, "Wind": 2, "Hydroelectric": 3, "Biomass": 4, "Geothermal": 5, "Tidal": 6, "Wave": 7}
+            type_num = type_map.get(type_renewable, 1)  # Default to Solar if not found
 
-        # Create input array matching training features (6 features)
-        input_data = np.array([[energy_production, type_num, installed_capacity, energy_storage_capacity, storage_efficiency, grid_integration_level]])
+            # Create input array matching training features (5 features)
+            input_data = np.array([[energy_production, type_num, installed_capacity, energy_storage_capacity, storage_efficiency]])
+            # Handle NaNs/infs
+            input_data = np.nan_to_num(input_data, nan=0.0, posinf=0.0, neginf=0.0)
+            # Scale input
+            input_scaled = scaler_.transform(input_data)
 
-        # Scale input
-        input_scaled = scaler_.transform(input_data)
+            # Predict based on selected model
+            if model_type == "Random Forest":
+                prediction = rf_.predict(input_scaled)[0]
+            elif model_type == "CNN":
+                input_reshaped = input_scaled.reshape((1, input_scaled.shape[1], 1))
+                prediction = cnn_.predict(input_reshaped)[0][0]
+            elif model_type == "RNN":
+                input_reshaped = input_scaled.reshape((1, input_scaled.shape[1], 1))
+                prediction = rnn_.predict(input_reshaped)[0][0]
 
-        # Predict based on selected model
-        if model_type == "Random Forest":
-            prediction = rf_.predict(input_scaled)[0]
-        elif model_type == "CNN":
-            input_reshaped = input_scaled.reshape((1, input_scaled.shape[1], 1))
-            prediction = cnn_.predict(input_reshaped)[0][0]
-        elif model_type == "RNN":
-            input_reshaped = input_scaled.reshape((1, input_scaled.shape[1], 1))
-            prediction = rnn_.predict(input_reshaped)[0][0]
-
-        st.success(f"Predicted Energy Consumption: {prediction:.2f} MWh")
+            st.success(f"Predicted Energy Consumption: {prediction:.2f} MWh")
+        except ValueError as e:
+            st.error(f"Prediction error: {e}. Ensure input values are valid numbers and match model expectations.")
 
 if __name__ == "__main__":
     main()
