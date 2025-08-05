@@ -51,8 +51,7 @@ async def predict(features: dict, model_type: str = Query("rf")):
 
     if model_type == "cnn":
         X_dl = X_scaled.reshape(X_scaled.shape[0], X_scaled.shape[1], 1)
-        # No padding needed with updated model
-        y_pred = cnn_model.predict(X_dl)
+        y_pred = cnn_model.predict(X_dl)  # No padding needed with updated model
     elif model_type == "rnn":
         X_dl = X_scaled.reshape(X_scaled.shape[0], X_scaled.shape[1], 1)
         y_pred = rnn_model.predict(X_dl)
