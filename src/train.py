@@ -33,14 +33,24 @@ selected_features = [
     'Grid_Integration_Level'
 ]
 
+# Numeric features (5) for scaling, exclude categorical
+numeric_features = [
+    'Energy_Production_MWh',
+    'Installed_Capacity_MW',
+    'Energy_Storage_Capacity_MWh',
+    'Storage_Efficiency_Percentage',
+    'Grid_Integration_Level'
+]
+
 X = df[selected_features]
 y = df[target]
 
-# Standardize all features except the categorical one
-numeric_features = [f for f in selected_features if f != 'Type_of_Renewable_Energy']
+# Scale only numeric features
 scaler = StandardScaler()
+X_numeric = X[numeric_features]
+X_scaled_numeric = scaler.fit_transform(X_numeric)
 X_scaled = X.copy()
-X_scaled[numeric_features] = scaler.fit_transform(X[numeric_features])
+X_scaled[numeric_features] = X_scaled_numeric
 
 os.makedirs("../models", exist_ok=True)
 joblib.dump(scaler, "../models/scaler.pkl")

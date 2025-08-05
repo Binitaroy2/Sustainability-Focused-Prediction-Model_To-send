@@ -52,12 +52,23 @@ def main():
         'Energy_Production_MWh', 'Type_of_Renewable_Energy', 'Installed_Capacity_MW',
         'Energy_Storage_Capacity_MWh', 'Storage_Efficiency_Percentage', 'Grid_Integration_Level'
     ]  # 6 features
+    numeric_features = [
+        'Energy_Production_MWh',
+        'Installed_Capacity_MW',
+        'Energy_Storage_Capacity_MWh',
+        'Storage_Efficiency_Percentage',
+        'Grid_Integration_Level'
+    ]  # 5 numeric
     try:
         X = df[selected_features]
         y = df["Energy_Consumption_MWh"]
         # Handle NaNs/infs if any
         X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
-        Xs = scaler_.transform(X.values)  # Use .values to avoid feature name check
+        numeric_X = X[numeric_features]
+        scaled_numeric = scaler_.transform(numeric_X)
+        X_scaled = X.copy()
+        X_scaled[numeric_features] = scaled_numeric
+        Xs = X_scaled.values  # Full 6 features for model
         preds = rf_.predict(Xs)
         st.markdown("### RF: Actual vs Predicted")
         fig, ax = plt.subplots()
@@ -91,8 +102,11 @@ def main():
             # Handle NaNs/infs
             input_data = np.nan_to_num(input_data, nan=0.0, posinf=0.0, neginf=0.0)
 
-            # Scale input
-            input_scaled = scaler_.transform(input_data)
+            # Scale only numeric features (columns 0,2,3,4,5)
+            numeric_input = input_data[:, [0,2,3,4,5]]
+            scaled_numeric = scaler_.transform(numeric_input)
+            input_scaled = input_data.copy()
+            input_scaled[:, [0,2,3,4,5]] = scaled_numeric
 
             # Predict based on selected model
             if model_type == "Random Forest":
