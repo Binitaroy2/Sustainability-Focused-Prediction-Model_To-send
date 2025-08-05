@@ -1,20 +1,16 @@
 # src/streamlit_app.py
 import os
 import subprocess
-import importlib
-import sys
-
-# Import models module
-from api.main import scaler, rf_model, cnn, rnn  # api/main.py (subfolder)
-
-# Streamlit app
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import joblib
+from tensorflow.keras.models import load_model
 
 # Project root for paths
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "updated_energy_dataset.csv")
+MODELS_PATH = os.path.join(PROJECT_ROOT, "models")
 
 @st.cache_data
 def load_data():
@@ -22,10 +18,12 @@ def load_data():
 
 @st.cache_resource
 def load_models():
-    # Reload the module to pick up new models after retrain
-    importlib.reload(sys.modules['api.main'])
-    from api.main import scaler, rf_model, cnn, rnn
-    return scaler, rf_model, cnn, rnn
+    # Load models directly with absolute paths
+    scaler_ = joblib.load(os.path.join(MODELS_PATH, "scaler.pkl"))
+    rf_ = joblib.load(os.path.join(MODELS_PATH, "best_rf_model.pkl"))
+    cnn_ = load_model(os.path.join(MODELS_PATH, "cnn_model.keras"))
+    rnn_ = load_model(os.path.join(MODELS_PATH, "rnn_model.keras"))
+    return scaler_, rf_, cnn_, rnn_
 
 def main():
     st.set_page_config(layout="wide", page_title="🔋 Energy Predictor")
