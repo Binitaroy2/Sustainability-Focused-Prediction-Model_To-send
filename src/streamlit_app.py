@@ -14,7 +14,7 @@ mlflow_tmp = os.path.join(tempfile.gettempdir(), "mlruns")
 os.makedirs(mlflow_tmp, exist_ok=True)
 os.environ["MLFLOW_TRACKING_URI"] = f"file://{mlflow_tmp}"
 
-# 3) Temporarily cd into src/ so train.py’s own pd.read_csv("../data/...") works
+# 3) Temporarily cd into src/ so train.py’s own pd.read_csv("../data/...") works during imports if needed
 os.chdir(SRC_DIR)
 
 # 4) Ensure we can import modules from src/
@@ -52,7 +52,13 @@ def main():
     st.sidebar.header("Controls")
     if st.sidebar.button("Retrain Model"):
         with st.spinner("Running train.py…"):
-            train_and_log()
+            # Temporarily cd into src/ for the function call, assuming train_and_log uses relative paths like "../data/"
+            original_cwd = os.getcwd()
+            os.chdir(SRC_DIR)
+            try:
+                train_and_log()
+            finally:
+                os.chdir(original_cwd)
         st.success("✅ Model retrained! Click ‘Reload Models’ to pick up changes.")
 
     if st.sidebar.button("Reload Models"):
