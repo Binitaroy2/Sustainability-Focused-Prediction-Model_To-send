@@ -42,18 +42,21 @@ async def root():
 async def predict(features: dict, model_type: str = Query("rf")):
     # Convert incoming to DataFrame for scaling
     X_input = np.array([[features.get(feat, 0) for feat in FEATURES]])
-    X_df = {feat: [features.get(feat, 0)] for feat in FEATURES}
     import pandas as pd
-    X_df = pd.DataFrame(X_df)
+    X_df = pd.DataFrame(X_input, columns=FEATURES)
     X_df[numeric_features] = scaler.transform(X_df[numeric_features])
     X_scaled = X_df.values
 
     if model_type == "cnn":
         X_dl = X_scaled.reshape(X_scaled.shape[0], X_scaled.shape[1], 1)
+        # Pad to avoid negative dimension (make timesteps at least 7)
+        if X_dl.shape[1] < 7:
+            pad_width = ((0,0), (0,7 - X_dl.shape[1]), (0,0))
+            X_dl = np.pad(X_dl, pad_width, mode='constant')
         y_pred = cnn_model.predict(X_dl)
     elif model_type == "rnn":
         X_dl = X_scaled.reshape(X_scaled.shape[0], X_scaled.shape[1], 1)
         y_pred = rnn_model.predict(X_dl)
     else:
         y_pred = rf_model.predict(X_scaled)
-    return {"prediction": float(y_pred[0][0] if hasattr(y_pred[0], '__len__') else y_pred[0])}
+    return {"prediction": float(y_pred[0][0] if len(y_pred[0]) > 0 else y_pred[0])}
