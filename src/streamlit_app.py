@@ -26,6 +26,20 @@ def load_models():
     return scaler_, rf_, cnn_, rnn_
 
 def main():
+    # Hide the GitHub link and toolbar in Streamlit Cloud
+    st.markdown("""
+ <style>
+  section[data-testid="stToolbar"] {
+    display: none !important;
+  }
+  .reportview-container .main footer {visibility: hidden;}    
+  .viewerBadge_container__1QSob {display: none !important;}
+  [data-testid="collapsedControl"] {
+    display: none !important;
+  }
+ </style>
+ """, unsafe_allow_html=True)
+
     st.set_page_config(layout="wide", page_title="🔋 Energy Predictor")
     st.title("🔋 Sustainability-Focused Energy Predictor")
     # Sidebar controls
