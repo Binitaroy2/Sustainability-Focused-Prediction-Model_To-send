@@ -20,6 +20,7 @@ Sustainability-Focused Energy Consumption Prediction Project/
 │   └── scaler.pkl                # Scaler for numeric feature normalization
 │
 ├── src/
+│   ├── streamlit_app.py
 │   ├── train.py                  # Training script for all models and MLflow tracking
 │   └── api/
 │       ├── main.py               # FastAPI app for serving predictions + UI
