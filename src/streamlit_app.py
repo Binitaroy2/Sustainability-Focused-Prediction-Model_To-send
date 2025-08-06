@@ -29,20 +29,11 @@ def main():
     # Hide the GitHub link and toolbar in Streamlit Cloud
     st.markdown("""
  <style>
-  section[data-testid="stToolbar"] {
-    display: none !important;
-  }
-  .reportview-container .main footer {visibility: hidden;}    
-  .viewerBadge_container__1QSob {display: none !important;}
-  [data-testid="collapsedControl"] {
-    display: none !important;
-  }
-  .viewerBadge_link__1SdzA {
-    display: none !important;
-  }
-  #GithubIcon {
-    visibility: hidden;
-  }
+ .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
+ .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
+ .viewerBadge_text__1JaDK {
+   display: none;
+ }
  </style>
  """, unsafe_allow_html=True)
 
