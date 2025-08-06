@@ -40,6 +40,9 @@ def main():
   .viewerBadge_link__1SdzA {
     display: none !important;
   }
+  #GithubIcon {
+    visibility: hidden;
+  }
  </style>
  """, unsafe_allow_html=True)
 
