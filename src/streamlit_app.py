@@ -37,6 +37,9 @@ def main():
   [data-testid="collapsedControl"] {
     display: none !important;
   }
+  .viewerBadge_link__1SdzA {
+    display: none !important;
+  }
  </style>
  """, unsafe_allow_html=True)
 
